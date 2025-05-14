@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import  jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
@@ -44,17 +44,26 @@ userSchema.pre("save", async function (next) {
 });
 
 //GENERATE ACCESS TOKEN
-userSchema.methods.generateAccessToken= async function (){
+userSchema.methods.generateAccessToken = async function () {
   return jwt.sign(
     {
       _id: this._id,
       name: this.name,
-      email: this.email
-    }, process.env.ACCESS_TOKEN_SECRET,
-    {expiresIn:'1h'}
-  )
-}
+      email: this.email,
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "10m" }
+  );
+};
 
 // GENERATE REFRESH TOKEN
-
+userSchema.methods.genereateRefreshToken = async function () {
+  return jwt.sign(
+    {
+      _id: this._id,
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "5d" }
+  );
+};
 export const User = mongoose.model("User", userSchema);

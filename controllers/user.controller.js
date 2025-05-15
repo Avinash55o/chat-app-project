@@ -1,13 +1,13 @@
 import { myError } from "@/utils/myError";
 import { myResponse } from "@/utils/myResponse";
 import { User } from "@/models/user.models";
-import { upload } from "@/api/middleware/multer.middleware";
+import { uploadToCloudinay } from "@/utils/cloudinary";
 
 const registerUser = async (req, res) => {
-  const { fullname, email, name, password } = req.body;
+  const { fullName, email, name, password } = req.body;
 
   // To check all fields are their or not and to ensure that the fields are not just non-empty but also not just white space i use trim()
-  if ([fullname, email, name, password].some((field) => field?.trim() === "")) {
+  if ([fullName, email, name, password].some((field) => field?.trim() === "")) {
     throw new myError(400, "all field are required");
   }
 
@@ -29,5 +29,30 @@ const registerUser = async (req, res) => {
   }
 
   // upload to the cloudinary
+  const avatar= await uploadToCloudinay(avatarLocalPath);
 
+  if(!avatar){
+    throw new myError(400, "something happens when uploading avatar to cloudinary")
+  }
+
+  // creating new user
+  const user= await User.create({
+    name,
+    fullName,
+    email,
+    password,
+    avatar: avatar.url
+  })
+
+  //In response i dont want to give the password and refreshToken
+  const createdUser= await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+
+  if(!createdUser){
+    throw new myError(500, "created user logic have some problem")
+  };
+
+  // return the res
+  return res.status(201).myResponse(201,createdUser,"the user is registerd successfully")
 };

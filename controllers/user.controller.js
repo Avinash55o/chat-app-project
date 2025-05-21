@@ -56,3 +56,4 @@ const registerUser = async (req, res) => {
   // return the res
   return res.status(201).myResponse(201,createdUser,"the user is registerd successfully")
 };
+
